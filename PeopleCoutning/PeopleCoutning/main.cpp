@@ -9,7 +9,7 @@
 #include "GaussFilterColor.h"
 #include "DelaunayTriangle.h"
 #include "PeopleContainer.h"
-#define FILE "Thang Test_LocalHost_ch20[Clip 1]_Part1[720x240x13fps].avi"
+#define FILE "Video 6.wmv"
 
 #define NUMBER_FEATURE 500
 
@@ -69,7 +69,7 @@ int main()
 	int i = 0;
 //	char count[10];
 	cvCvtColor(image, foreground1, CV_RGB2GRAY);
-	GaussFilterColor *m_gauss = new GaussFilterColor();
+	Gauss *m_gauss = new Gauss();
 	m_gauss->LoadData("GaussModel.txt");
 	IplImage *subtract;
 	//m_gauss->SetThreshold(-5);
@@ -82,35 +82,37 @@ int main()
 		}	
 		cvCopyImage(image, imgTmp);
 
-		/*subtract = m_gauss->Classify(
+		subtract = m_gauss->Classify(
 			image, 
 			-6.5);
 		
 		cvShowImage("abc", subtract);
-		*/
+		
 		++i;
 		//itoa(i,count,10);
 		//cvPutText(image, count, cvPoint(100, 100),&font , cvScalar(255,255,255));
 		
+		//background subtract
+		/*
 		cvCvtColor(image, foreground2, CV_BGR2GRAY);
 		BackgroundSubtract(foreground2, background, foreground2);
-		
+		*/
 		//KLT+ Delaunay clustering
 		
-		kltTracker.flowTracking(foreground1, foreground2, point);
-		cvCopyImage(foreground2,foreground1);
+		//kltTracker.flowTracking(foreground1, foreground2, point);
+		//cvCopyImage(foreground2,foreground1);
 
-		kltTracker.drawArrow(imgTmp,COLOR_GREEN, point);
-		delaunay.initialize(image);
+		//kltTracker.drawArrow(imgTmp,COLOR_GREEN, point);
+		//delaunay.initialize(image);
+		//
+		//delaunay.insertPoint(point);
+		//
+		//delaunay.draw_subdiv(imgTmp, delaunay_color, voronoi_color);
 		
-		delaunay.insertPoint(point);
 		
-		delaunay.draw_subdiv(imgTmp, delaunay_color, voronoi_color);
+		//cvShowImage("imgTmp",imgTmp);
 		
-		
-		cvShowImage("imgTmp",imgTmp);
-		
-		cvShowImage("background", foreground2);
+		//cvShowImage("background", foreground2);
 		//foreground2 = foreground1;
 		
 		//cvWriteFrame(writer, foreground);
@@ -126,10 +128,10 @@ int main()
 		*/
 		
 		//contour
-		/*
+		
 		container.initPoint();
-		container.Process(foreground2, image);
-		*/
+		container.Process(subtract, image);
+		
 		//cvShowImage("Contour", container.destinyImage);
 		//cvWriteFrame(writer, container.destinyImage);
 		//cvZero(container.destinyImage);

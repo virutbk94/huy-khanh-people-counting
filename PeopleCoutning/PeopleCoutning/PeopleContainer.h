@@ -5,8 +5,9 @@
 #include "HeadDetect.h"
 #include <time.h>
 #include "People.h"
-//#include "LinkList.h"
+#include "LinkList.h"
 
+#define  avarageHumanSize 1000
 class Container
 {
 public:
@@ -18,7 +19,7 @@ public:
 	//std::vector<int> placeHolder;
 	CvFont font;
 	IplImage *destinyImage;
-	int avarageHumanSize;
+	
 	CvPoint *line;
 	int distance1 ;
 	int distance2;
@@ -31,7 +32,7 @@ public:
 
 
 	std::vector<CPeople> people;
-//	LinkList pointList;
+	LinkList pointList;
 	void Container::CreatePeople();
 
 	Container::Container();
@@ -135,33 +136,27 @@ void Container::Process(IplImage* forground,IplImage* image)
 	CvSeq * test = contours;
 	int numberInside =1;
 
-	//avarageHumanSize = contourSize/cvGetSize(contours).width;
 	while (test!=NULL)
 	{
-	/*	double contourSize = cvContourArea(contours, CV_WHOLE_SEQ, 0);
-		if (contourSize>100)
+		double contourSize = cvContourArea(contours, CV_WHOLE_SEQ, 0);
+		
+		if (contourSize < avarageHumanSize)
 		{
-			sumElement += 1;
-			sumSize +=  contourSize;
-			avarageHumanSize = sumSize/sumElement;
-		}
-		if (contourSize < avarageHumanSize/3)
-		{
-			test = 	cvFindNextContour(scanner);
-
-			//test = contours;
+			//contours = 	contours->h_next;
+			contours = cvFindNextContour(scanner);
+			test = contours;
 		}
 		else if ((avarageHumanSize*2)<contourSize)
 		{
-			// 			if (people.empty())
-			// 				CreatePeople();
-			// 		
-			// 			if (people.size()<i)
-			// 		
-			// 				CreatePeople();
+			 			if (people.empty())
+			 				CreatePeople();
+			 		
+			 			if (people.size()<i)
+			 		
+			 				CreatePeople();
 
-			//numberInside = 2;
-			numberInside = detectHead.getHairColor(cvBoundingRect(contours));
+			numberInside = 2;
+			//numberInside = detectHead.getHairColor(cvBoundingRect(contours));
 			goto N;
 		}
 		else
@@ -173,18 +168,18 @@ N:
 			people[i].rect = cvBoundingRect(contours);
 			people[i].axis.x = (people[i].rect.x+people[i].rect.width);
 			people[i].axis.y = (people[i].rect.y+people[i].rect.height/2);
-			//people[i].numberInside = numberInside;
-			people[i].numberInside = detectHead.getHairColor(people[i].rect);
+			people[i].numberInside = numberInside;
+			//people[i].numberInside = detectHead.getHairColor(people[i].rect);
 			people[i].contour = contours;
-		*/	
-			//contours =	cvFindNextContour(scanner);
-			contours = contours->h_next;
-
+			
 			contours =	cvFindNextContour(scanner);
+			//contours = contours->h_next;
+
+			
 			test = contours;
 			++i;
 		}
-	//}
+	}
 	while (i< people.size())
 	{
 		DeletePeople(i);
@@ -194,18 +189,18 @@ N:
 	contours = cvEndFindContours(&scanner);
 	cvDrawContours( destinyImage, contours, CV_RGB(255,0,0), CV_RGB(0,255,0),1, 1, CV_AA, cvPoint(0,0) );
 	cvShowImage("contour", destinyImage);
-	//matchPeople();
-	//countPeoplePass();
-}
+//	matchPeople();
+//	countPeoplePass();
 
-void Container::getHist(IplImage *image)
+}
+/*void Container::getHist(IplImage *image)
 {
 	for (int i = 0; i < people.size(); ++i)
 	{
 		histProcess->initHSVImage(image);
 		people[i].hist = histProcess->computeHist(image, people[i].rect);
 	}
-}
+}*/
 /*void Container::initHist(IplImage *image)
 {
 for (int i = 0; i < people.size(); ++i)
@@ -223,11 +218,11 @@ void Container::initPoint()
 	int size = people.size();
 	for (int i = 0; i < size; ++i)
 	{
-//		pointList.append(people[i].axis);
+		pointList.append(people[i].axis);
 		people[i].pos = i;
 	}
 }
-/*
+
 void Container::matchPeople()
 { 
 
@@ -281,68 +276,68 @@ void Container::matchPeople()
 	QuickSort(0,people.size()-1);
 	int a;
 }
-*/
+
 double Container::distance(CvPoint a, CvPoint b)
 {
 	double i;
 	i = (a.x - b.x)*(a.x - b.x) + (a.y-b.y)*(a.y-b.y);
 	return sqrt(i);
 }
-/*void Container::matchPeople(IplImage *image)
-{ 
-int min =100;
-int index;
-int distance;
-std::vector<CPeople> temp;
+//void Container::matchPeople(IplImage *image)
+//{ 
+//int min =100;
+//int index;
+//int distance;
+//std::vector<CPeople> temp;
+//
+//for (int i = 0; i < PreviousHist.size();++i)
+//{
+//if (PreviousHist[i].bins!=NULL)
+//for (int t = 0; t < people.size();++t)
+//{
+//distance =  histProcess->distance(&(PreviousHist[i]),people[t].hist);
+//if (min>distance)
+//{
+//min = distance;
+//index = i;
+//}
+//}
+//if (min < 0.8)
+//{
+//temp[i] = people[i];
+//CvHistogram *hist;
+//cvCopyHist(people[i].hist, &hist);
+//PreviousHist[i] = *hist;
+//DeletePeople(i);
+//}
+//else
+//PreviousHist[i].bins = 0;
+//
+//min = 100;
+//}
+//
+//if (people.size()>0)
+//{
+//int t = 0;
+//for (int i = 0; i < people.size(); ++i)
+//{
+//
+//while (PreviousHist[t].bins != NULL)
+//++t;
+//
+//CvHistogram *hist;
+//cvCopyHist(people[i].hist, &hist);
+//PreviousHist[t] = *hist;
+//++t;
+//
+//temp[t] = people[i];
+//DeletePeople(i);
+//}
+//}
+//people = temp;
+//temp.clear();
+//}
 
-for (int i = 0; i < PreviousHist.size();++i)
-{
-if (PreviousHist[i].bins!=NULL)
-for (int t = 0; t < people.size();++t)
-{
-distance =  histProcess->distance(&(PreviousHist[i]),people[t].hist);
-if (min>distance)
-{
-min = distance;
-index = i;
-}
-}
-if (min < 0.8)
-{
-temp[i] = people[i];
-CvHistogram *hist;
-cvCopyHist(people[i].hist, &hist);
-PreviousHist[i] = *hist;
-DeletePeople(i);
-}
-else
-PreviousHist[i].bins = 0;
-
-min = 100;
-}
-
-if (people.size()>0)
-{
-int t = 0;
-for (int i = 0; i < people.size(); ++i)
-{
-
-while (PreviousHist[t].bins != NULL)
-++t;
-
-CvHistogram *hist;
-cvCopyHist(people[i].hist, &hist);
-PreviousHist[t] = *hist;
-++t;
-
-temp[t] = people[i];
-DeletePeople(i);
-}
-}
-people = temp;
-temp.clear();
-}
-*/
 
 void Container::countPeoplePass()
 {
