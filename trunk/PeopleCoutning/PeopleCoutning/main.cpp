@@ -8,7 +8,8 @@
 #include "KLT.h"
 #include "GaussFilterColor.h"
 #include "DelaunayTriangle.h"
-#define FILE "Video 6.wmv"
+#include "PeopleContainer.h"
+#define FILE "Thang Test_LocalHost_ch20[Clip 1]_Part1[720x240x13fps].avi"
 
 #define NUMBER_FEATURE 500
 
@@ -27,7 +28,7 @@ int main()
 	CvSize size;
 	size = cvGetSize(image);
 
-	//Container container(image);
+	Container container(image);
 	
 	/*double fps = cvGetCaptureProperty(
 		capture,
@@ -47,7 +48,7 @@ int main()
 	cvInitFont(&font,CV_FONT_ITALIC, 0.5,0.5,0,1,8);
 
 	IplImage *background = cvCreateImage(size, depth, channels);
-	cvCvtColor(image, background, CV_RGB2GRAY);
+	cvCvtColor(image, background, CV_BGR2GRAY);
 	
 	KLT kltTracker;
 
@@ -72,7 +73,7 @@ int main()
 	m_gauss->LoadData("GaussModel.txt");
 	IplImage *subtract;
 	//m_gauss->SetThreshold(-5);
-	BackgroundSubtract(foreground1, background, foreground1);
+	//BackgroundSubtract(foreground1, background, foreground1);
 	while ((image = cvQueryFrame(capture))!=NULL)
 	{
 		
@@ -91,9 +92,10 @@ int main()
 		//itoa(i,count,10);
 		//cvPutText(image, count, cvPoint(100, 100),&font , cvScalar(255,255,255));
 		
-		cvCvtColor(image, foreground2, CV_RGB2GRAY);
+		cvCvtColor(image, foreground2, CV_BGR2GRAY);
 		BackgroundSubtract(foreground2, background, foreground2);
 		
+		//KLT+ Delaunay clustering
 		
 		kltTracker.flowTracking(foreground1, foreground2, point);
 		cvCopyImage(foreground2,foreground1);
@@ -108,11 +110,12 @@ int main()
 		
 		cvShowImage("imgTmp",imgTmp);
 		
-		cvShowImage("background", foreground1);
+		cvShowImage("background", foreground2);
 		//foreground2 = foreground1;
 		
 		//cvWriteFrame(writer, foreground);
 		
+		//histogram matching
 		/*if (isInit == 0)
 		{
 			container.initHist(image);
@@ -121,9 +124,12 @@ int main()
 		container.getHist(image);
 		container.matchPeople(image);
 		*/
-		//container.initPoint();
-		//container.Process(foreground, image);
 		
+		//contour
+		/*
+		container.initPoint();
+		container.Process(foreground2, image);
+		*/
 		//cvShowImage("Contour", container.destinyImage);
 		//cvWriteFrame(writer, container.destinyImage);
 		//cvZero(container.destinyImage);
@@ -134,6 +140,7 @@ int main()
 			//getchar();
 			//system("CONTINUE");
 		}
+		
 	}
 //	 cvReleaseVideoWriter(&writer);
 	cvReleaseImage( &image);

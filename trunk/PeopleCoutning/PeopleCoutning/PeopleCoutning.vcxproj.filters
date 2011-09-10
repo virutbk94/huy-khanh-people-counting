@@ -47,9 +47,6 @@
     <ClInclude Include="ExpectedMaximize.h">
       <Filter>Header Files\delaunay</Filter>
     </ClInclude>
-    <ClInclude Include="Pagram.h">
-      <Filter>Header Files\delaunay</Filter>
-    </ClInclude>
     <ClInclude Include="Vehicle.h">
       <Filter>Header Files\delaunay</Filter>
     </ClInclude>
@@ -64,6 +61,12 @@
     </ClInclude>
     <ClInclude Include="GaussFilterColor.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DelaunayClustering.h">
+      <Filter>Header Files\delaunay</Filter>
+    </ClInclude>
+    <ClInclude Include="Param.h">
+      <Filter>Header Files\delaunay</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
