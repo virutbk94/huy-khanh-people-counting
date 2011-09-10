@@ -7,11 +7,11 @@ using namespace std;
 
 #pragma once
 
-class GaussFilterColor
+class Gauss
 {
 public:	
 	double InvCov[2][2];
-	
+
 	double sub[3];
 	double rsl[3];
 	double b;
@@ -27,7 +27,7 @@ public:
 	void LoadData(char* fileOutput);
 	//IplImage* Classify(IplImage *imgColor, IplImage *mask);
 	IplImage* Classify(IplImage *imgColor,  float thresh);
-	//IplImage* Classify(IplImage *imgColor);
+	IplImage* Classify(IplImage *imgColor);
 	void SetThreshold(double threshold);
 
 	CvScalar getPixalValue(IplImage* img, int x, int y, int channels)
@@ -40,31 +40,30 @@ public:
 		}
 		return rtValue;
 	}
-	
-	GaussFilterColor(void);
-	~GaussFilterColor(void);
+
+	Gauss(void);
+	~Gauss(void);
 };
 
-#include "GaussFilterColor.h"
-
-GaussFilterColor::GaussFilterColor(void)
+Gauss::Gauss(void)
 {
 	threshold = -6.5;	
 }
 
-GaussFilterColor::~GaussFilterColor(void)
+Gauss::~Gauss(void)
 {
 	cvReleaseMat(&mean);
 	cvReleaseMat(&corrvariant);
 }
 
-void GaussFilterColor::SetThreshold(double thresh)
+void Gauss::SetThreshold(double thresh)
 {
 	this->threshold = thresh;
 }
 
 
-IplImage* GaussFilterColor::Classify(IplImage *img,  float thresh)
+
+IplImage* Gauss::Classify(IplImage *img,  float thresh)
 {
 	IplImage* gray = cvCreateImage(cvGetSize(img), img->depth, 1);
 
@@ -121,12 +120,13 @@ IplImage* GaussFilterColor::Classify(IplImage *img,  float thresh)
 	}
 				
 	cvReleaseImage(&imgHsv);
+
 	return gray;
 }
 
 
 
-void GaussFilterColor::LoadData(char* fileOutput)
+void Gauss::LoadData(char* fileOutput)
 {
 	ifstream fin;
 	fin.open(fileOutput);
@@ -152,7 +152,7 @@ void GaussFilterColor::LoadData(char* fileOutput)
 	logOfSqrt2PiVariance = log(1.0/temp);
 }
 
-void GaussFilterColor::TrainData(char *prefix, char *suffix, int number_images, int start_index, int end_index, char* fileOutput)
+void Gauss::TrainData(char *prefix, char *suffix, int number_images, int start_index, int end_index, char* fileOutput)
 {
 	unsigned char *pImg;
 	unsigned char *pHsv;
