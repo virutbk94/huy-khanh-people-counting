@@ -1,3 +1,6 @@
+#pragma  once
+#include <highgui.h>
+#include <cv.h>
 
 class LinkList
 {
@@ -15,15 +18,13 @@ public:
 	node *match;
 
 
-	LinkList();
-	void append( CvPoint num );
+
+	
 	//void add_as_first( CvPoint num );
-	void addafter( int c, CvPoint num );
-	void delNotMatchNode(  );
-	void LinkList::resetMatchValue();
+	
 	//void display();
-	int count();
-	~LinkList();
+	
+	
 	LinkList::LinkList()
 	{
 		head=NULL;
@@ -34,8 +35,6 @@ public:
 
 	void LinkList::append(CvPoint num)
 	{
-
-
 		if( head == NULL )
 		{
 			head = new node;
