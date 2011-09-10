@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BackgroundSubtract.h" />
+    <ClInclude Include="DelaunayClustering.h" />
     <ClInclude Include="DelaunayTriangle.h" />
     <ClInclude Include="ExpectedMaximize.h" />
     <ClInclude Include="FrameSegment.h" />
@@ -91,7 +92,7 @@
     <ClInclude Include="Histogram.h" />
     <ClInclude Include="KLT.h" />
     <ClInclude Include="LinkList.h" />
-    <ClInclude Include="Pagram.h" />
+    <ClInclude Include="Param.h" />
     <ClInclude Include="People.h" />
     <ClInclude Include="PeopleContainer.h" />
     <ClInclude Include="Region.h" />

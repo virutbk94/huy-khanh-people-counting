@@ -56,7 +56,7 @@ public:
 		//cvCornerHarris(gray1,prev_features, 3,3,0.04);
 
 		//cvGoodFeaturesToTrack(gray1, eigImg, tmpImg, prev_features, &numFeatures, 0.01, 20);
-				cvGoodFeaturesToTrack(gray1, eigImg, tmpImg, prev_features, &numFeatures, 0.01, 5.0, 0,3,0,0.04);
+		cvGoodFeaturesToTrack(gray1, eigImg, tmpImg, prev_features, &numFeatures, 0.01, 5.0, 0,3,0,0.04);
 		//cvFindCornerSubPix(gray1, prev_features, numFeatures, win_size, cvSize(-1,-1), termSubPix);
 		//cvCalcOpticalFlowPyrLK(gray1, gray2, prev_pyr, curr_pyr, prev_features, curr_features, numFeatures, win_size, level, features_found, feature_errors, criteria, 0);
 		cvSetZero(eigImg);

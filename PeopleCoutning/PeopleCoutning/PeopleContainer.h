@@ -1,3 +1,11 @@
+#pragma once
+#include <cv.h>
+#include <vector>
+#include "Histogram.h"
+#include "HeadDetect.h"
+#include <time.h>
+#include "People.h"
+//#include "LinkList.h"
 
 class Container
 {
@@ -23,7 +31,7 @@ public:
 
 
 	std::vector<CPeople> people;
-	LinkList pointList;
+//	LinkList pointList;
 	void Container::CreatePeople();
 
 	Container::Container();
@@ -118,9 +126,8 @@ void Container::Process(IplImage* forground,IplImage* image)
 
 {
 
-	
-	detectHead.image = image;
-	
+	cvCopyImage(image, destinyImage);
+
 	CvContourScanner scanner = cvStartFindContours(forground, storage, sizeof(CvContour), CV_RETR_EXTERNAL);
 	contours = cvFindNextContour(scanner);
 
@@ -131,7 +138,7 @@ void Container::Process(IplImage* forground,IplImage* image)
 	//avarageHumanSize = contourSize/cvGetSize(contours).width;
 	while (test!=NULL)
 	{
-		double contourSize = cvContourArea(contours, CV_WHOLE_SEQ, 0);
+	/*	double contourSize = cvContourArea(contours, CV_WHOLE_SEQ, 0);
 		if (contourSize>100)
 		{
 			sumElement += 1;
@@ -169,7 +176,7 @@ N:
 			//people[i].numberInside = numberInside;
 			people[i].numberInside = detectHead.getHairColor(people[i].rect);
 			people[i].contour = contours;
-			
+		*/	
 			//contours =	cvFindNextContour(scanner);
 			contours = contours->h_next;
 
@@ -177,7 +184,7 @@ N:
 			test = contours;
 			++i;
 		}
-	}
+	//}
 	while (i< people.size())
 	{
 		DeletePeople(i);
@@ -185,8 +192,10 @@ N:
 	}
 	i=0;
 	contours = cvEndFindContours(&scanner);
-	matchPeople();
-	countPeoplePass();
+	cvDrawContours( destinyImage, contours, CV_RGB(255,0,0), CV_RGB(0,255,0),1, 1, CV_AA, cvPoint(0,0) );
+	cvShowImage("contour", destinyImage);
+	//matchPeople();
+	//countPeoplePass();
 }
 
 void Container::getHist(IplImage *image)
@@ -214,11 +223,11 @@ void Container::initPoint()
 	int size = people.size();
 	for (int i = 0; i < size; ++i)
 	{
-		pointList.append(people[i].axis);
+//		pointList.append(people[i].axis);
 		people[i].pos = i;
 	}
 }
-
+/*
 void Container::matchPeople()
 { 
 
@@ -272,6 +281,7 @@ void Container::matchPeople()
 	QuickSort(0,people.size()-1);
 	int a;
 }
+*/
 double Container::distance(CvPoint a, CvPoint b)
 {
 	double i;
