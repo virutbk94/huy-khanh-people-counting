@@ -11,7 +11,7 @@
 #include "PeopleContainer.h"
 #define FILE "video 6.wmv"
 
-#define NUMBER_FEATURE 500
+#define NUMBER_FEATURE 100
 
 int main()
 {
@@ -101,7 +101,7 @@ int main()
 			image, 
 			-6.5);
 		
-		cvShowImage("abc", subtract);
+		
 		
 		++i;
 		//itoa(i,count,10);
@@ -111,27 +111,34 @@ int main()
 		//cvCvtColor(image, foreground2, CV_BGR2GRAY);
 		cvCopyImage(subtract,foreground2);
 		BackgroundSubtract(foreground2, background, foreground2);
-		
+		cvShowImage("background", foreground2);
 		//KLT+ Delaunay clustering
 		
-		kltTracker.flowTracking(foreground1, foreground2, point);
+		/*kltTracker.flowTracking(foreground1, foreground2, point);
+		kltTracker.drawArrow(imgTmp,COLOR_GREEN, point);
+		*/
+
 		cvCopyImage(foreground2,foreground1);
 
-		kltTracker.drawArrow(imgTmp,COLOR_GREEN, point);
+		
 		/*
 		delLtFlowRespectLaw->initialize(image);
 		delLtFlowRespectLaw->updateDelaunayGraph(point);
 		delLtFlowRespectLaw->findFilterCenterEachGroup();
 		delLtFlowRespectLaw->draw_subdiv(imgTmp, COLOR_GREEN, COLOR_RED);
-			*/		
+			*/	
+		/*
 		delaunay.initialize(image);
 		delaunay.insertPoint(point);
 		delaunay.draw_subdiv(imgTmp, delaunay_color, voronoi_color);
+		*/
+		container.initPoint();
+		container.Process(foreground2, imgTmp);
+
+		cvShowImage("contour", imgTmp);
+		//cvShowImage("abc", subtract);
+		//cvShowImage("imgTmp",imgTmp);
 		
-		
-		cvShowImage("imgTmp",imgTmp);
-		
-		cvShowImage("background", foreground2);
 		//foreground2 = foreground1;
 		
 		//cvWriteFrame(writer, foreground);
@@ -147,10 +154,9 @@ int main()
 		*/
 		
 		//contour
-		/*
-		container.initPoint();
-		container.Process(foreground2, image);
-		*/
+		
+		
+		
 		//cvShowImage("Contour", container.destinyImage);
 		//cvWriteFrame(writer, container.destinyImage);
 		//cvZero(container.destinyImage);

@@ -31,7 +31,8 @@ public:
 	
 
 
-	std::vector<CPeople> people;
+	std::vector<CPeople> peoples;
+	std::vector<CvRect> rects;
 	LinkList pointList;
 	void Container::CreatePeople();
 
@@ -106,108 +107,80 @@ CvContourScanner scanner = cvStartFindContours(image, storage, sizeof(CvContour)
 
 contours = cvFindNextContour(scanner);
 
-CvSeq * test = contours;
+CvSeq * first_contour = contours;
 
 
-while (test != NULL)
+while (first_contour != NULL)
 {
 //double contourSize = 0;
 tempSize+= cvContourArea(contours, CV_WHOLE_SEQ, 0);
 contours =	cvFindNextContour(scanner);
-test = contours;
+first_contour = contours;
 contours->h_next;
 }
 contours = cvEndFindContours(&scanner);
-test = contours;
+first_contour = contours;
 total = contours->elem_size;
 avarageHumanSize = tempSize/total;
 
 }*/
 void Container::Process(IplImage* forground,IplImage* image)
-
 {
 
-	cvCopyImage(image, destinyImage);
-
-	CvContourScanner scanner = cvStartFindContours(forground, storage, sizeof(CvContour), CV_RETR_EXTERNAL);
-	contours = cvFindNextContour(scanner);
-
+	//cvCopyImage(image, destinyImage);
+	CvSeq* first_contour = 0;
+	cvFindContours( forground, storage, &first_contour );	
 	int i = 0;
-	CvSeq * test = contours;
+
 	int numberInside =1;
 
-	while (test!=NULL)
+	for (CvSeq* c = first_contour; c != NULL; c = c->h_next)
 	{
-		double contourSize = cvContourArea(contours, CV_WHOLE_SEQ, 0);
+		CvRect bRect = cvBoundingRect(c);
 		
-		if (contourSize < avarageHumanSize)
+		if (bRect.width > 50 && bRect.height > 50)
 		{
-			//contours = 	contours->h_next;
-			contours = cvFindNextContour(scanner);
-			test = contours;
-		}
-		else if ((avarageHumanSize*2)<contourSize)
-		{
-			 			if (people.empty())
-			 				CreatePeople();
-			 		
-			 			if (people.size()<i)
-			 		
-			 				CreatePeople();
+			cvRectangle(image,cvPoint(bRect.x,bRect.y),
+				cvPoint(bRect.x+bRect.width,bRect.y+bRect.height),cvScalarAll(255));
+			CPeople people;
 
-			numberInside = 2;
-			//numberInside = detectHead.getHairColor(cvBoundingRect(contours));
-			goto N;
-		}
-		else
-		{
-N:
-			if (people.size()<=i)
-				CreatePeople();
-
-			people[i].rect = cvBoundingRect(contours);
-			people[i].axis.x = (people[i].rect.x+people[i].rect.width);
-			people[i].axis.y = (people[i].rect.y+people[i].rect.height/2);
-			people[i].numberInside = numberInside;
-			//people[i].numberInside = detectHead.getHairColor(people[i].rect);
-			people[i].contour = contours;
+			people.rect = bRect;
+			people.axis.x = (bRect.x+bRect.width/2);
+			people.axis.y = (bRect.y+bRect.height/2);
+			people.numberInside = numberInside;
+			people.contour = c;
 			
-			contours =	cvFindNextContour(scanner);
-			//contours = contours->h_next;
-
-			
-			test = contours;
+			peoples.push_back(people);
 			++i;
 		}
-	}
-	while (i< people.size())
+	
+	while (i< peoples.size())
 	{
 		DeletePeople(i);
 		++i;
 	}
 	i=0;
-	contours = cvEndFindContours(&scanner);
-	cvDrawContours( destinyImage, contours, CV_RGB(255,0,0), CV_RGB(0,255,0),1, 1, CV_AA, cvPoint(0,0) );
-	cvShowImage("contour", destinyImage);
+	
 //	matchPeople();
 //	countPeoplePass();
 
 }
+}
 /*void Container::getHist(IplImage *image)
 {
-	for (int i = 0; i < people.size(); ++i)
+	for (int i = 0; i < peoples.size(); ++i)
 	{
 		histProcess->initHSVImage(image);
-		people[i].hist = histProcess->computeHist(image, people[i].rect);
+		peoples[i].hist = histProcess->computeHist(image, peoples[i].rect);
 	}
 }*/
 /*void Container::initHist(IplImage *image)
 {
-for (int i = 0; i < people.size(); ++i)
+for (int i = 0; i < peoples.size(); ++i)
 {
 histProcess->initHSVImage(image);
-people[i].hist = histProcess->computeHist(image, people[i].rect);
-PreviousHist.push_back(*people[i].hist);
+peoples[i].hist = histProcess->computeHist(image, peoples[i].rect);
+PreviousHist.push_back(*peoples[i].hist);
 }
 
 }
@@ -215,11 +188,11 @@ PreviousHist.push_back(*people[i].hist);
 
 void Container::initPoint()
 {
-	int size = people.size();
+	int size = peoples.size();
 	for (int i = 0; i < size; ++i)
 	{
-		pointList.append(people[i].axis);
-		people[i].pos = i;
+		pointList.append(peoples[i].axis);
+		peoples[i].pos = i;
 	}
 }
 
@@ -230,7 +203,7 @@ void Container::matchPeople()
 	double dis;
 	double min=100;
 	int intArray[30];
-	int size = people.size();
+	int size = peoples.size();
 	for (int i = 0; i < size;++i)
 	{
 		if (pointList.head == NULL)
@@ -239,7 +212,7 @@ void Container::matchPeople()
 			break;
 		}
 		pointList.current=pointList.head;
-		min = distance(pointList.current->data, people[i].axis);
+		min = distance(pointList.current->data, peoples[i].axis);
 		int t = 0;
 		if (pointList.current!=NULL)
 		{
@@ -247,7 +220,7 @@ void Container::matchPeople()
 		{
 			++t;
 			pointList.current = pointList.current->link;
-			dis = distance(pointList.current->data, people[i].axis);
+			dis = distance(pointList.current->data, peoples[i].axis);
 			if (min>dis)
 			{
 				min = dis;
@@ -259,21 +232,21 @@ void Container::matchPeople()
 
 		if (min < 5)		
 		{
-			people[i].pos= index;
+			peoples[i].pos= index;
 			pointList.match->match=true;
 			
 		}	
 		else
 		{
-			pointList.append(people[i].axis);
-			people[i].pos = t+1;
+			pointList.append(peoples[i].axis);
+			peoples[i].pos = t+1;
 		}
 	}
 
 	pointList.delNotMatchNode();
 	pointList.resetMatchValue();
 	
-	QuickSort(0,people.size()-1);
+	QuickSort(0,peoples.size()-1);
 	int a;
 }
 
@@ -293,9 +266,9 @@ double Container::distance(CvPoint a, CvPoint b)
 //for (int i = 0; i < PreviousHist.size();++i)
 //{
 //if (PreviousHist[i].bins!=NULL)
-//for (int t = 0; t < people.size();++t)
+//for (int t = 0; t < peoples.size();++t)
 //{
-//distance =  histProcess->distance(&(PreviousHist[i]),people[t].hist);
+//distance =  histProcess->distance(&(PreviousHist[i]),peoples[t].hist);
 //if (min>distance)
 //{
 //min = distance;
@@ -304,9 +277,9 @@ double Container::distance(CvPoint a, CvPoint b)
 //}
 //if (min < 0.8)
 //{
-//temp[i] = people[i];
+//temp[i] = peoples[i];
 //CvHistogram *hist;
-//cvCopyHist(people[i].hist, &hist);
+//cvCopyHist(peoples[i].hist, &hist);
 //PreviousHist[i] = *hist;
 //DeletePeople(i);
 //}
@@ -316,25 +289,25 @@ double Container::distance(CvPoint a, CvPoint b)
 //min = 100;
 //}
 //
-//if (people.size()>0)
+//if (peoples.size()>0)
 //{
 //int t = 0;
-//for (int i = 0; i < people.size(); ++i)
+//for (int i = 0; i < peoples.size(); ++i)
 //{
 //
 //while (PreviousHist[t].bins != NULL)
 //++t;
 //
 //CvHistogram *hist;
-//cvCopyHist(people[i].hist, &hist);
+//cvCopyHist(peoples[i].hist, &hist);
 //PreviousHist[t] = *hist;
 //++t;
 //
-//temp[t] = people[i];
+//temp[t] = peoples[i];
 //DeletePeople(i);
 //}
 //}
-//people = temp;
+//peoples = temp;
 //temp.clear();
 //}
 
@@ -343,35 +316,35 @@ void Container::countPeoplePass()
 {
 	/*
 	cvMoments(contours, &moment, 0);
-	people[i].axis.x = moment.m01/moment.m00;
-	people[i].axis.y = moment.m10/moment.m00;
+	peoples[i].axis.x = moment.m01/moment.m00;
+	peoples[i].axis.y = moment.m10/moment.m00;
 	*/
 	char countUpChar[5], countDownChar[5], output[20];
 
-	for (int i = 0; i < people.size(); ++i)
+	for (int i = 0; i < peoples.size(); ++i)
 	{
-		if (line[2].y<people[i].axis.y &&  people[i].axis.y< line[3].y 
-			&& line[2].x<people[i].axis.x && people[i].axis.x< line[3].x
-			&& people[i].flag==0)
+		if (line[2].y<peoples[i].axis.y &&  peoples[i].axis.y< line[3].y 
+			&& line[2].x<peoples[i].axis.x && peoples[i].axis.x< line[3].x
+			&& peoples[i].flag==0)
 		{
-			if (people[i].side == true)
-			countDown =countDown + people[i].numberInside;
+			if (peoples[i].side == true)
+			countDown =countDown + peoples[i].numberInside;
 			else
-				countUp = countUp + people[i].numberInside;
-			people[i].flag = 1;
+				countUp = countUp + peoples[i].numberInside;
+			peoples[i].flag = 1;
 		}
-		if ((people[i].axis.y<line[4].y || line[5].y<people[i].axis.y)
-			&& people[i].flag==1)
+		if ((peoples[i].axis.y<line[4].y || line[5].y<peoples[i].axis.y)
+			&& peoples[i].flag==1)
 		{
-			people[i].flag = 0;
+			peoples[i].flag = 0;
 			//DeletePeople(i);
 		}
-		if  ((people[i].axis.y<line[4].y )
-			&& people[i].flag==0)
-			people[i].side = true;
-		else if ((line[5].y<people[i].axis.y )
-			&& people[i].flag==0)
-			people[i].side = false;
+		if  ((peoples[i].axis.y<line[4].y )
+			&& peoples[i].flag==0)
+			peoples[i].side = true;
+		else if ((line[5].y<peoples[i].axis.y )
+			&& peoples[i].flag==0)
+			peoples[i].side = false;
 
 
 		itoa(countUp,countUpChar,10);
@@ -382,7 +355,7 @@ void Container::countPeoplePass()
 		strcat(output, countDownChar);
 		
 		cvDrawContours( destinyImage, contours, CV_RGB(255,0,0), CV_RGB(0,255,0),1, 1, CV_AA, cvPoint(0,0) );
-		cvLine(destinyImage, people[i].axis, people[i].axis, cvScalar(0,255,255), 2, 8, 0);
+		cvLine(destinyImage, peoples[i].axis, peoples[i].axis, cvScalar(0,255,255), 2, 8, 0);
 		cvPutText(destinyImage, output, cvPoint(width/10, heigh/10),&font , cvScalar(0,255,0));
 		
 	}		
@@ -394,12 +367,12 @@ void Container::countPeoplePass()
 void Container::CreatePeople()
 {
 	CPeople unit;
-	people.push_back(unit);
+	peoples.push_back(unit);
 }
 
 void Container::DeletePeople(int i)
 {
-	people.erase(people.begin() + i);
+	peoples.erase(peoples.begin() + i);
 }
 
 /*void Container::DeleteHist(int i)
@@ -423,11 +396,11 @@ void Container::QuickSort(int startIndex, int endIndex)
 {
 	if (endIndex>startIndex)
 	{
-		int pivot = people[startIndex].pos;
+		int pivot = peoples[startIndex].pos;
 	int splitPoint;
 		
 		splitPoint = SplitArray(pivot, startIndex,endIndex);
-		people[splitPoint].pos = pivot;
+		peoples[splitPoint].pos = pivot;
 		QuickSort( startIndex, splitPoint -1);
 //		if (splitPoint+1 < endIndex)
 		QuickSort(splitPoint+1, endIndex);
@@ -440,16 +413,16 @@ int Container::SplitArray( int pivotValue, int startIndex, int endIndex)
 	int rightBoundary = endIndex;
 	while (leftBoundary<rightBoundary)
 	{
-		while (pivotValue<people[rightBoundary].pos && rightBoundary > leftBoundary)
+		while (pivotValue<peoples[rightBoundary].pos && rightBoundary > leftBoundary)
 		{
 			rightBoundary--;
 		}
-		swap(people[leftBoundary],people[rightBoundary]);
-		while (pivotValue >= people[leftBoundary].pos && leftBoundary < rightBoundary)
+		swap(peoples[leftBoundary],peoples[rightBoundary]);
+		while (pivotValue >= peoples[leftBoundary].pos && leftBoundary < rightBoundary)
 		{
 			leftBoundary++;
 		}
-		swap(people[rightBoundary], people[leftBoundary]);
+		swap(peoples[rightBoundary], peoples[leftBoundary]);
 	}
 	return leftBoundary;
 }
