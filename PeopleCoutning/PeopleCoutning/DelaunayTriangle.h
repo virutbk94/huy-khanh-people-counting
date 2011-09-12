@@ -3,7 +3,7 @@
 #include <vector>
 #include <stack>
 #include "Param.h"
-#define NUMBER_FEATURE	500
+#define NUMBER_FEATURE	100
 #define NUMBER_SLOT		4
 #define NUMBER_PAIRS	6
 #define MAX_GROUPS		(NUMBER_FEATURE / 3) * 2

@@ -5,7 +5,7 @@
 #include "Param.h"
 
 
-#define NUMBER_FEATURE 500
+#define NUMBER_FEATURE 100
 #define Pi 3.141592653
 using namespace std;
 class KLT
