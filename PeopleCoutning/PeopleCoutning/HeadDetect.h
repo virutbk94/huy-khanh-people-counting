@@ -10,7 +10,7 @@
 #include <iostream>
 #include <string.h>
 #include <vector>
-#include "GaussFilterColor.h"
+#include "Gauss.h"
 
 class HeadDetect
 {

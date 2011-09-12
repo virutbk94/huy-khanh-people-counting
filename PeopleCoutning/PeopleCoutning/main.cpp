@@ -6,7 +6,7 @@
 #include <cxcore.h>
 #include "BackgroundSubtract.h"
 #include "KLT.h"
-#include "GaussFilterColor.h"
+#include "Gauss.h"
 #include "DelaunayTriangle.h"
 #include "PeopleContainer.h"
 #define FILE "video 6.wmv"
@@ -76,7 +76,7 @@ int main()
 	int i = 0;
 //	char count[10];
 	//cvCvtColor(image, foreground1, CV_RGB2GRAY);
-	GaussFilterColor *m_gauss = new GaussFilterColor();
+	Gauss *m_gauss = new Gauss();
 	m_gauss->LoadData("GaussModel.txt");
 	IplImage *subtract;
 	//m_gauss->SetThreshold(-5);
