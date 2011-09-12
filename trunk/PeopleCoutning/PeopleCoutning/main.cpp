@@ -9,7 +9,7 @@
 #include "GaussFilterColor.h"
 #include "DelaunayTriangle.h"
 #include "PeopleContainer.h"
-#define FILE "Video 6.wmv"
+#define FILE "video 6.wmv"
 
 #define NUMBER_FEATURE 500
 
@@ -30,6 +30,13 @@ int main()
 
 	Container container(image);
 	
+
+
+	DelaunayTriangle *delLtFlowRespectLaw;
+	delLtFlowRespectLaw = new DelaunayTriangle();
+	double threshEdgeRespectLawLtFlow = 17;
+	int minFeatRespectLawLtFlow = 5;
+
 	/*double fps = cvGetCaptureProperty(
 		capture,
 		CV_CAP_PROP_FPS
@@ -68,12 +75,20 @@ int main()
 		//cvQueryFrame(capture);
 	int i = 0;
 //	char count[10];
-	cvCvtColor(image, foreground1, CV_RGB2GRAY);
-	Gauss *m_gauss = new Gauss();
+	//cvCvtColor(image, foreground1, CV_RGB2GRAY);
+	GaussFilterColor *m_gauss = new GaussFilterColor();
 	m_gauss->LoadData("GaussModel.txt");
 	IplImage *subtract;
 	//m_gauss->SetThreshold(-5);
+	subtract = m_gauss->Classify(
+		image, 
+		-6.5);
+	cvCopyImage(subtract, background);
+	cvCopyImage(subtract, foreground1);
 	//BackgroundSubtract(foreground1, background, foreground1);
+	BackgroundSubtract(foreground1, subtract, foreground1);
+	delLtFlowRespectLaw->initualizeDelaunayGraph(size, COLOR_AQUA, threshEdgeRespectLawLtFlow, minFeatRespectLawLtFlow); 
+	
 	while ((image = cvQueryFrame(capture))!=NULL)
 	{
 		
@@ -81,7 +96,7 @@ int main()
 			break;
 		}	
 		cvCopyImage(image, imgTmp);
-
+		
 		subtract = m_gauss->Classify(
 			image, 
 			-6.5);
@@ -92,27 +107,31 @@ int main()
 		//itoa(i,count,10);
 		//cvPutText(image, count, cvPoint(100, 100),&font , cvScalar(255,255,255));
 		
-		//background subtract
-		/*
-		cvCvtColor(image, foreground2, CV_BGR2GRAY);
+		
+		//cvCvtColor(image, foreground2, CV_BGR2GRAY);
+		cvCopyImage(subtract,foreground2);
 		BackgroundSubtract(foreground2, background, foreground2);
-		*/
+		
 		//KLT+ Delaunay clustering
 		
-		//kltTracker.flowTracking(foreground1, foreground2, point);
-		//cvCopyImage(foreground2,foreground1);
+		kltTracker.flowTracking(foreground1, foreground2, point);
+		cvCopyImage(foreground2,foreground1);
 
-		//kltTracker.drawArrow(imgTmp,COLOR_GREEN, point);
-		//delaunay.initialize(image);
-		//
-		//delaunay.insertPoint(point);
-		//
-		//delaunay.draw_subdiv(imgTmp, delaunay_color, voronoi_color);
+		kltTracker.drawArrow(imgTmp,COLOR_GREEN, point);
+		/*
+		delLtFlowRespectLaw->initialize(image);
+		delLtFlowRespectLaw->updateDelaunayGraph(point);
+		delLtFlowRespectLaw->findFilterCenterEachGroup();
+		delLtFlowRespectLaw->draw_subdiv(imgTmp, COLOR_GREEN, COLOR_RED);
+			*/		
+		delaunay.initialize(image);
+		delaunay.insertPoint(point);
+		delaunay.draw_subdiv(imgTmp, delaunay_color, voronoi_color);
 		
 		
-		//cvShowImage("imgTmp",imgTmp);
+		cvShowImage("imgTmp",imgTmp);
 		
-		//cvShowImage("background", foreground2);
+		cvShowImage("background", foreground2);
 		//foreground2 = foreground1;
 		
 		//cvWriteFrame(writer, foreground);
@@ -128,10 +147,10 @@ int main()
 		*/
 		
 		//contour
-		
+		/*
 		container.initPoint();
-		container.Process(subtract, image);
-		
+		container.Process(foreground2, image);
+		*/
 		//cvShowImage("Contour", container.destinyImage);
 		//cvWriteFrame(writer, container.destinyImage);
 		//cvZero(container.destinyImage);
