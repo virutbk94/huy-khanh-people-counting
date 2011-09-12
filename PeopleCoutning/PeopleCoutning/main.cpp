@@ -71,8 +71,7 @@ int main()
 	IplImage *imgTmp = cvCreateImage(size, image->depth, image->nChannels);
 	
 	int isInit = 0;
-	//for (int i = 0; i < 150; ++i)
-		//cvQueryFrame(capture);
+	
 	int i = 0;
 //	char count[10];
 	//cvCvtColor(image, foreground1, CV_RGB2GRAY);
@@ -86,8 +85,11 @@ int main()
 	cvCopyImage(subtract, background);
 	cvCopyImage(subtract, foreground1);
 	//BackgroundSubtract(foreground1, background, foreground1);
+	
 	BackgroundSubtract(foreground1, subtract, foreground1);
-	delLtFlowRespectLaw->initualizeDelaunayGraph(size, COLOR_AQUA, threshEdgeRespectLawLtFlow, minFeatRespectLawLtFlow); 
+	for (int i = 0; i < 700; ++i)
+		cvQueryFrame(capture);
+	//delLtFlowRespectLaw->initualizeDelaunayGraph(size, COLOR_AQUA, threshEdgeRespectLawLtFlow, minFeatRespectLawLtFlow); 
 	
 	while ((image = cvQueryFrame(capture))!=NULL)
 	{
@@ -132,9 +134,10 @@ int main()
 		delaunay.insertPoint(point);
 		delaunay.draw_subdiv(imgTmp, delaunay_color, voronoi_color);
 		*/
-		container.initPoint();
+		
+		//container.initPoint();
 		container.Process(foreground2, imgTmp);
-
+		
 		cvShowImage("contour", imgTmp);
 		//cvShowImage("abc", subtract);
 		//cvShowImage("imgTmp",imgTmp);

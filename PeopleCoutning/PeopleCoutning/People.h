@@ -14,7 +14,7 @@ public:
 	~CPeople();
 
 CvHistogram *hist;
-CHist *chist;
+//CHist *chist;
 	int lable;
 
 //void CPeople::AddPeople(CvSeq *contours);
@@ -22,12 +22,12 @@ void getRect()
 {
 	rect = cvBoundingRect(contour,0);
 }
-CvHistogram * getHist(IplImage *image, CvRect rect)
+/*CvHistogram * getHist(IplImage *image, CvRect rect)
 {
 	
 	return chist->computeHist(image, rect);
 }
-
+*/
 };
 CPeople::CPeople()
 {
