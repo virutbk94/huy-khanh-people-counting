@@ -8,12 +8,13 @@
 
 typedef struct linklist_data
 {
-	
+
 	CvPoint point;
 	int pos;
 	bool flag;
 	bool isIn;
-	
+	bool side;
+
 	linklist_data()
 	{
 		flag = false;
@@ -28,26 +29,26 @@ typedef struct linklist_data
 class Container
 {
 public:
-	CvMemStorage *storage;
+	CvMemStorage *storageA, *storageB;
 	CvSeq *contours;
 	//CHist *histProcess;
 	//HeadDetect detectHead;
 
 	CvFont font;
-	IplImage *destinyImage;
-
 	CvPoint *line;
 	int distance1 ;
 	int distance2;
 	CvPoint *point;
 	int countUp, countDown;
+	char countUpChar[5], countDownChar[5], output[20], frameCountChar[5];
+	int frame_count;
 	int heigh, width;
 	double sumSize;
 	int sumElement;
 
 
 
-	std::vector<CPeople> peoples;
+	std::vector<CPeople> pBaseHeadColors, pBaseBGSubs;
 	std::vector<CvRect> rects;
 	std::vector<DATA> previous_pos;
 	//linklist previous_pos;
@@ -57,7 +58,7 @@ public:
 	Container::Container(IplImage *foreground);
 	~Container();
 
-	void Container::Process(IplImage* forground,IplImage* image );
+	void Container::Process(IplImage* forgroundColorDectect,IplImage *forgroundBackgroundSubtract, IplImage* image);
 	void Container::countPeoplePass(IplImage *image);
 	void Container::DeletePeople(int i);
 	void Container::matchPeople();
@@ -68,9 +69,15 @@ public:
 	void QuickSort(	int startIndex, int endIndex);
 	int SplitArray( int pivotValue, int startIndex, int endIndex);
 	void swap(CPeople &a, CPeople &b);
+	bool isInsideRect(CvPoint point, CvRect rect)
+	{
+		if (rect.x < point.x && point.x < (rect.x+ rect.width) && rect.y < point.y && point.y < (rect.y +rect.height))
+			return true;
+		else
+			return false;
+	}
 
 };
-
 Container::Container()
 {
 
@@ -79,16 +86,17 @@ Container::Container(IplImage *foreground)
 {
 	contours = 0;
 	countUp = countDown = 0;
-	destinyImage = cvCreateImage(cvGetSize(foreground),8,3);
 	cvInitFont(&font,CV_FONT_ITALIC, 0.5,0.5,0,1,8);
-	storage = cvCreateMemStorage(0);
+	storageA = cvCreateMemStorage(0);
+	storageB = cvCreateMemStorage(0);
 	sumSize = 500;
 	sumElement =1;
 	line = new CvPoint[6];
-	distance1 = 20;
-	distance2 = 100;
+	distance1 =	30;
+	distance2 = 60;
 
-
+	itoa(countUp,countUpChar,10);
+	frame_count =0;
 
 	heigh = foreground->height;
 	width = foreground->width;
@@ -105,19 +113,19 @@ Container::Container(IplImage *foreground)
 	//		placeHolder.push_back(i);
 
 	line[0].y=heigh/2;line[0].x=0;
-	line[1].y=heigh/2;line[1].x=width;
+	line[1].y=heigh/2;line[1].x=width/2;
 
 	line[2].y=heigh/2-distance1;line[2].x=0;
-	line[3].y=heigh/2+distance1;line[3].x=width;
+	line[3].y=heigh/2+distance1;line[3].x=width/2;
 
 	line[4].y=heigh/2-distance2;line[4].x=0;
-	line[5].y=heigh/2+distance2;line[5].x=width;
+	line[5].y=heigh/2+distance2;line[5].x=width/2;
 
 	//avarageHumanSize = 1200;
 }
 /*void Container::initialAverageSize()
 {
-CvContourScanner scanner = cvStartFindContours(image, storage, sizeof(CvContour), CV_RETR_EXTERNAL);
+CvContourScanner scanner = cvStartFindContours(image, storageA, sizeof(CvContour), CV_RETR_EXTERNAL);
 
 contours = cvFindNextContour(scanner);
 
@@ -138,60 +146,91 @@ total = contours->elem_size;
 avarageHumanSize = tempSize/total;
 
 }*/
-void Container::Process(IplImage* forground,IplImage* image)
+void Container::Process(IplImage* forgroundColorDectect,IplImage *forgroundBackgroundSubtract, IplImage* image)
 {
 
 	//cvCopyImage(image, destinyImage);
-	CvSeq* first_contour = 0;
-	cvFindContours( forground, storage, &first_contour );	
+	CvSeq* first_contour_A = 0;
+	CvSeq* first_contour_B = 0;
+	cvFindContours( forgroundColorDectect, storageA, &first_contour_A );
 
+	++frame_count;
 
-	int numberInside =1;
-
-	for (CvSeq* c = first_contour; c != NULL; c = c->h_next)
+	for (CvSeq* c = first_contour_A; c != NULL; c = c->h_next)
 	{
 		CvRect bRect = cvBoundingRect(c);
 
-		if (bRect.width > 50 && bRect.height > 50)
+		if (bRect.width > 40 && bRect.height > 40)
 		{
 			cvRectangle(image,cvPoint(bRect.x,bRect.y),
-				cvPoint(bRect.x+bRect.width,bRect.y+bRect.height),cvScalarAll(255));
-			CPeople people;
+				cvPoint(bRect.x+bRect.width,bRect.y+bRect.height),cvScalar(0,255,0));
+			CPeople pBaseHeadColor;
 
-			people.rect = bRect;
-			people.axis.x = (bRect.x+bRect.width/2);
-			people.axis.y = (bRect.y+bRect.height/2);
-			people.numberInside = numberInside;
-			people.contour = c;
-			people.flag = false;
+			pBaseHeadColor.rect = bRect;
+			pBaseHeadColor.axis.x = (bRect.x+bRect.width/2);
+			pBaseHeadColor.axis.y = (bRect.y+bRect.height/2);
+			pBaseHeadColor.contour = c;
+			pBaseHeadColor.flag = false;
 
-			peoples.push_back(people);
+			pBaseHeadColors.push_back(pBaseHeadColor);
 		}
-
-
-
-
 	}
+
+	cvFindContours(forgroundBackgroundSubtract, storageB, &first_contour_B);
+	for (CvSeq* c = first_contour_B; c != NULL; c = c->h_next)
+	{
+		CvRect bRect = cvBoundingRect(c);
+		bool isAlone = true;
+
+		if (bRect.width > 30 && bRect.height > 30)
+		{
+			for (int i = 0; i < pBaseHeadColors.size() && isAlone == true; i++)
+				if (isInsideRect(pBaseHeadColors[i].axis, bRect))
+					isAlone = false;
+			if (isAlone == true)		
+			{
+				cvRectangle(image,cvPoint(bRect.x,bRect.y),
+					cvPoint(bRect.x+bRect.width,bRect.y+bRect.height),cvScalarAll(255));
+				CPeople pBaseBGSub;
+
+				pBaseBGSub.rect = bRect;
+				pBaseBGSub.axis.x = (bRect.x+bRect.width/2);
+				pBaseBGSub.axis.y = (bRect.y+bRect.height/2);
+				pBaseBGSub.contour = c;
+				pBaseBGSub.flag = false;
+
+				pBaseBGSubs.push_back(pBaseBGSub);
+			}
+		}
+	}
+
+	for (int i = 0; i < pBaseBGSubs.size(); i++)
+	{
+		pBaseHeadColors.push_back(pBaseBGSubs[i]);
+	}
+
 	matchPeople();
 	countPeoplePass(image);
-	//cvClearMemStorage(storage);
-	peoples.clear();
+	cvClearMemStorage(storageA);
+	cvClearMemStorage(storageB);
+	pBaseHeadColors.clear();
+	pBaseBGSubs.clear();
 }
 /*void Container::getHist(IplImage *image)
 {
-for (int i = 0; i < peoples.size(); ++i)
+for (int i = 0; i < pBaseHeadColors.size(); ++i)
 {
 histProcess->initHSVImage(image);
-peoples[i].hist = histProcess->computeHist(image, peoples[i].rect);
+pBaseHeadColors[i].hist = histProcess->computeHist(image, pBaseHeadColors[i].rect);
 }
 }*/
 /*void Container::initHist(IplImage *image)
 {
-for (int i = 0; i < peoples.size(); ++i)
+for (int i = 0; i < pBaseHeadColors.size(); ++i)
 {
 histProcess->initHSVImage(image);
-peoples[i].hist = histProcess->computeHist(image, peoples[i].rect);
-PreviousHist.push_back(*peoples[i].hist);
+pBaseHeadColors[i].hist = histProcess->computeHist(image, pBaseHeadColors[i].rect);
+PreviousHist.push_back(*pBaseHeadColors[i].hist);
 }
 
 }
@@ -208,7 +247,7 @@ void Container::matchPeople()
 	DATA tmpData;
 	bool isMatch = false;
 	int intArray[30];
-	int people_size = peoples.size();
+	int people_size = pBaseHeadColors.size();
 	int previous_pos_size = previous_pos.size();
 	int t =0;
 
@@ -217,21 +256,21 @@ void Container::matchPeople()
 	{
 		for (int n=0; n<previous_pos_size;n++)
 		{
-			mDistance = distance(previous_pos[n].point, peoples[m].axis);
+			mDistance = distance(previous_pos[n].point, pBaseHeadColors[m].axis);
 			if (min_distance>mDistance)
 			{
 				min_distance = mDistance;
-				tmpData.point = peoples[m].axis;
+				tmpData.point = pBaseHeadColors[m].axis;
 				tmpData.pos = n;
 				//tmpData.isIn = false;
 			}
 		}
-		if (min_distance < 30)
+		if (min_distance < 40)
 		{
 			previous_pos[tmpData.pos].point=tmpData.point;
 			previous_pos[tmpData.pos].flag=true;
-			//peoples[m].pos = tmpData.pos;
-			peoples[m].flag =true;
+			//pBaseHeadColors[m].pos = tmpData.pos;
+			pBaseHeadColors[m].flag =true;
 		}
 		min_distance = 1000; //temporary min distance
 	}
@@ -239,12 +278,12 @@ void Container::matchPeople()
 	//second match, new people got the way to store position in previous_pos list
 	for (int m = 0; m < people_size;++m)
 	{
-		if (peoples[m].flag==false)
+		if (pBaseHeadColors[m].flag==false)
 		{
 			if (previous_pos_size==0)
 			{
 				previous_pos_size++;
-				tmpData.point = peoples[m].axis;
+				tmpData.point = pBaseHeadColors[m].axis;
 				tmpData.pos = 0;
 				tmpData.flag =true;
 				tmpData.isIn = false;
@@ -256,7 +295,7 @@ void Container::matchPeople()
 
 				if (previous_pos[n].flag==false)
 				{
-					previous_pos[n].point = peoples[m].axis;
+					previous_pos[n].point = pBaseHeadColors[m].axis;
 					previous_pos[n].flag =true;
 					previous_pos[n].isIn = false;
 					isMatch = true;
@@ -264,7 +303,7 @@ void Container::matchPeople()
 			}
 			if (!isMatch)
 			{
-				tmpData.point = peoples[m].axis;
+				tmpData.point = pBaseHeadColors[m].axis;
 				tmpData.pos = previous_pos_size;
 				tmpData.flag =true;
 				tmpData.isIn = false;
@@ -307,9 +346,9 @@ double Container::distance(CvPoint a, CvPoint b)
 //for (int i = 0; i < PreviousHist.size();++i)
 //{
 //if (PreviousHist[i].bins!=NULL)
-//for (int t = 0; t < peoples.size();++t)
+//for (int t = 0; t < pBaseHeadColors.size();++t)
 //{
-//distance =  histProcess->distance(&(PreviousHist[i]),peoples[t].hist);
+//distance =  histProcess->distance(&(PreviousHist[i]),pBaseHeadColors[t].hist);
 //if (min>distance)
 //{
 //min = distance;
@@ -318,9 +357,9 @@ double Container::distance(CvPoint a, CvPoint b)
 //}
 //if (min < 0.8)
 //{
-//temp[i] = peoples[i];
+//temp[i] = pBaseHeadColors[i];
 //CvHistogram *hist;
-//cvCopyHist(peoples[i].hist, &hist);
+//cvCopyHist(pBaseHeadColors[i].hist, &hist);
 //PreviousHist[i] = *hist;
 //DeletePeople(i);
 //}
@@ -330,25 +369,25 @@ double Container::distance(CvPoint a, CvPoint b)
 //min = 100;
 //}
 //
-//if (peoples.size()>0)
+//if (pBaseHeadColors.size()>0)
 //{
 //int t = 0;
-//for (int i = 0; i < peoples.size(); ++i)
+//for (int i = 0; i < pBaseHeadColors.size(); ++i)
 //{
 //
 //while (PreviousHist[t].bins != NULL)
 //++t;
 //
 //CvHistogram *hist;
-//cvCopyHist(peoples[i].hist, &hist);
+//cvCopyHist(pBaseHeadColors[i].hist, &hist);
 //PreviousHist[t] = *hist;
 //++t;
 //
-//temp[t] = peoples[i];
+//temp[t] = pBaseHeadColors[i];
 //DeletePeople(i);
 //}
 //}
-//peoples = temp;
+//pBaseHeadColors = temp;
 //temp.clear();
 //}
 
@@ -360,19 +399,19 @@ void Container::countPeoplePass(IplImage *image)
 	previous_pos[i].point.x = moment.m01/moment.m00;
 	previous_pos[i].point.y = moment.m10/moment.m00;
 	*/
-	char countUpChar[5], countDownChar[5], output[20];
+
 
 	for (int i = 0; i < previous_pos.size(); i++)
 	{
 		/*if (line[2].y<previous_pos[i].point.y &&  previous_pos[i].point.y< line[3].y 
-			&& line[2].x<previous_pos[i].point.x && previous_pos[i].point.x< line[3].x
-			&& previous_pos[i].isIn==false)
-			*/
+		&& line[2].x<previous_pos[i].point.x && previous_pos[i].point.x< line[3].x
+		&& previous_pos[i].isIn==false)
+		*/
 		if (line[2].y<previous_pos[i].point.y &&  previous_pos[i].point.y< line[3].y && previous_pos[i].isIn==false)
 
 		{
-			//	if (peoples[i].side == true)
-			//	countDown =countDown + peoples[i].numberInside;
+			//	if (pBaseHeadColors[i].side == true)
+			//	countDown =countDown + pBaseHeadColors[i].numberInside;
 			//	else
 			countUp = countUp + 1;
 			previous_pos[i].isIn = true;
@@ -383,42 +422,41 @@ void Container::countPeoplePass(IplImage *image)
 			//DeletePeople(i);
 		}
 		/*if  ((previous_pos[i].point.y<line[4].y )
-		&& peoples[i].flag==0)
-		peoples[i].side = true;
+		&& pBaseHeadColors[i].flag==0)
+		pBaseHeadColors[i].side = true;
 		else if ((line[5].y<previous_pos[i].point.y )
-		&& peoples[i].flag==0)
-		peoples[i].side = false;
+		&& pBaseHeadColors[i].flag==0)
+		pBaseHeadColors[i].side = false;
 		*/
 
 		itoa(countUp,countUpChar,10);
 		itoa(previous_pos[i].pos,countDownChar,10);
+		itoa(frame_count,frameCountChar,10);
 		strcpy(output, "Pass:");
 		strcat(output, countUpChar);
-		//strcat(output,"  Down:" );
-		//strcat(output, countDownChar);
+		strcat(output,"  Frame:" );
+		strcat(output, frameCountChar);
 
 		//cvDrawContours( destinyImage, contours, CV_RGB(255,0,0), CV_RGB(0,255,0),1, 1, CV_AA, cvPoint(0,0) );
 		//cvLine(image, previous_pos[i].point, previous_pos[i].point, cvScalar(0,255,255), 2, 8, 0);
-		cvPutText(image, output, cvPoint(width/10, heigh/10),&font , cvScalar(0,255,0));
+
 		cvPutText(image, countDownChar, cvPoint(previous_pos[i].point.x,previous_pos[i].point.y),&font , cvScalar(0,255,0));
 	}		
+	cvPutText(image, output, cvPoint(width/10, heigh/10),&font , cvScalar(0,255,0));
 	cvLine(image, line[0],line[1],cvScalar(255,0,0),1,8,0);
 	//cvShowImage("contour", destinyImage);
 	//cvZero(destinyImage);
 
 }
-
 void Container::CreatePeople()
 {
 	CPeople unit;
-	peoples.push_back(unit);
+	pBaseHeadColors.push_back(unit);
 }
-
 void Container::DeletePeople(int i)
 {
-	peoples.erase(peoples.begin() + i);
+	pBaseHeadColors.erase(pBaseHeadColors.begin() + i);
 }
-
 /*void Container::DeleteHist(int i)
 {
 PreviousHist.erase(PreviousHist.begin() +i);
@@ -426,8 +464,8 @@ PreviousHist.erase(PreviousHist.begin() +i);
 
 Container::~Container()
 {
-	cvReleaseImage(&destinyImage);
-	cvReleaseMemStorage(&storage);
+	cvReleaseMemStorage(&storageA);
+	cvReleaseMemStorage(&storageB);
 }
 void Container::swap(CPeople &a, CPeople &b)
 {
@@ -440,11 +478,11 @@ void Container::QuickSort(int startIndex, int endIndex)
 {
 	if (endIndex>startIndex)
 	{
-		int pivot = peoples[startIndex].pos;
+		int pivot = pBaseHeadColors[startIndex].pos;
 		int splitPoint;
 
 		splitPoint = SplitArray(pivot, startIndex,endIndex);
-		peoples[splitPoint].pos = pivot;
+		pBaseHeadColors[splitPoint].pos = pivot;
 		QuickSort( startIndex, splitPoint -1);
 		//		if (splitPoint+1 < endIndex)
 		QuickSort(splitPoint+1, endIndex);
@@ -457,16 +495,16 @@ int Container::SplitArray( int pivotValue, int startIndex, int endIndex)
 	int rightBoundary = endIndex;
 	while (leftBoundary<rightBoundary)
 	{
-		while (pivotValue<peoples[rightBoundary].pos && rightBoundary > leftBoundary)
+		while (pivotValue<pBaseHeadColors[rightBoundary].pos && rightBoundary > leftBoundary)
 		{
 			rightBoundary--;
 		}
-		swap(peoples[leftBoundary],peoples[rightBoundary]);
-		while (pivotValue >= peoples[leftBoundary].pos && leftBoundary < rightBoundary)
+		swap(pBaseHeadColors[leftBoundary],pBaseHeadColors[rightBoundary]);
+		while (pivotValue >= pBaseHeadColors[leftBoundary].pos && leftBoundary < rightBoundary)
 		{
 			leftBoundary++;
 		}
-		swap(peoples[rightBoundary], peoples[leftBoundary]);
+		swap(pBaseHeadColors[rightBoundary], pBaseHeadColors[leftBoundary]);
 	}
 	return leftBoundary;
 }
