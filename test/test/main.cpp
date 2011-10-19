@@ -6,11 +6,13 @@
 #include <stdio.h>
 #include "KLT.h"
 #include "delaunayTriangle.h"
+#include "optical.h"
 
 using namespace cv;
-#define FILE "Video 6.wmv"
+#define FILE "YouTube - Computer vision - people counting algorithm.avi"
 
-Mat src;
+Mat src, srcPreserve;
+vector<Point2f> pointPreserve;
 
 int main()
 {
@@ -20,16 +22,23 @@ int main()
 		return -1;
 
 	KLT klt;
-	DelaunayTriangle delaunay;
-	
+	DELAUNAY delaunay;
+	OPTICAL optical;
+	cap >> src;
+
 	for (;;)
 	{
+		srcPreserve = src.clone();
 		cap >> src;
 		klt.initial(src);
-		delaunay.initialize(src, klt.corners);
+		pointPreserve = klt.corners;
+		optical.opticalFlow(srcPreserve,src,pointPreserve,klt.corners);
+		delaunay.initialize(src, optical.feature);
+		optical.feature.clear();
 		if (waitKey(30)>=0)
 			break;
+			;
 	}
-
+	cap.release();
 	return 0;
 }

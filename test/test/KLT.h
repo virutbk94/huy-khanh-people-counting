@@ -4,8 +4,9 @@
 using namespace cv;
 using namespace std;	
 
-#define NUMBER_FEATURE 50
-#define Pi 3.141592653
+#define NUMBER_FEATURE 400
+
+
 using namespace std;
 class KLT
 {
@@ -58,7 +59,7 @@ public:
 		{ circle( copy, corners[i], r, Scalar(255,0,255), -1, 8, 0 ); }
 		
 		/// Show what you got
-		namedWindow( "image", CV_WINDOW_AUTOSIZE );
+		namedWindow( "feature", CV_WINDOW_AUTOSIZE );
 		imshow( "feature", copy ); 
 	}
 

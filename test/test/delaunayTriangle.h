@@ -5,14 +5,15 @@
 using namespace cv;
 using namespace std;
 
-class DelaunayTriangle
+
+class DELAUNAY
 {	
 public:
-	DelaunayTriangle()
+	DELAUNAY()
 	{
 
 	}
-	~DelaunayTriangle()
+	~DELAUNAY()
 	{
 
 	}
@@ -26,8 +27,9 @@ public:
 		subdiv.insert(fp[i]);
 		Mat copy = src.clone();
 		draw_subdiv( copy, subdiv, delaunay_color );
+		//copy.empty();
 	}
-	static void draw_subdiv( Mat& img, Subdiv2D& subdiv, Scalar delaunay_color )
+	static void draw_subdiv( Mat img, Subdiv2D subdiv, Scalar delaunay_color )
 	{
 		vector<Vec4f> edgeList;
 		subdiv.getEdgeList(edgeList);

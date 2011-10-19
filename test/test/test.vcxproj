@@ -16,6 +16,7 @@
   <ItemGroup>
     <ClInclude Include="delaunayTriangle.h" />
     <ClInclude Include="KLT.h" />
+    <ClInclude Include="optical.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{28528F18-A83C-4294-B2F1-7971C7F68832}</ProjectGuid>
@@ -61,7 +62,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opencv_core231d.lib;opencv_highgui231d.lib;opencv_imgproc231d.lib;opencv_features2d231d.lib;opencv_calib3d231d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_core231d.lib;opencv_highgui231d.lib;opencv_imgproc231d.lib;opencv_features2d231d.lib;opencv_calib3d231d.lib;opencv_video231d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -79,6 +80,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opencv_video231.lib;opencv_core231.lib;opencv_highgui231.lib;opencv_imgproc231.lib;opencv_features2d231.lib;opencv_calib3d231.lib;opencv_core231d.lib;opencv_highgui231d.lib;opencv_imgproc231d.lib;opencv_features2d231d.lib;opencv_calib3d231d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
