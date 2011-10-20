@@ -16,7 +16,6 @@ class OPTICAL
 	Mat prevImgGray, nextImgGray;
 	TermCriteria criteria;
 
-
 public:
 	vector<Point2f> feature;
 
