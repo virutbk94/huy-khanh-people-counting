@@ -9,7 +9,7 @@
 #include "optical.h"
 
 using namespace cv;
-#define FILE "YouTube - Computer vision - people counting algorithm.avi"
+#define FILE "Video 6.wmv"
 
 Mat src, srcPreserve;
 vector<Point2f> pointPreserve;
@@ -37,8 +37,8 @@ int main()
 		optical.feature.clear();
 		if (waitKey(30)>=0)
 			break;
-			;
+			
 	}
-	cap.release();
+	
 	return 0;
 }
